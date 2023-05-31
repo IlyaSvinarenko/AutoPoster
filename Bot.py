@@ -4,16 +4,16 @@ from aiogram.utils import executor
 import os
 from pathlib import Path
 import Posting
-import menu_and_callback
-from menu_and_callback import create_menu, process_button1, process_button2
+#import menu_and_callback
+#from menu_and_callback import create_menu_straight_revers_queue, straight_revers_queue_callback
 
 bot_token = os.environ.get('bot_token')
 bot = Bot(token=bot_token)
 dp = Dispatcher(bot)
 hours = 24
 count_message = 0
-text_to_photo = {}
-
+text_to_photo = []
+flag = 0
 
 @dp.message_handler(commands=['help'])
 async def help(message: Message):
@@ -30,7 +30,7 @@ async def help(message: Message):
 @dp.message_handler(commands=['posting'])
 async def posting_command(message: Message):
     global hours
-    await menu_and_callback.create_menu(message)
+    await  create_menu_straight_revers_queue(message)
     # Posting.posting(text_to_photo, hours)
 
 
@@ -39,7 +39,7 @@ async def posting_command(message: Message):
 async def clear_data(message: Message):
     global count_message
     global text_to_photo
-    text_to_photo = {}
+    text_to_photo = []
     count_message = 0
     # Получаем список файлов и папок в указанной папке
     folder_path = ".\images"
@@ -77,7 +77,7 @@ async def saver_msg(message: Message):
         full_pass = os.path.abspath(save_path)
         text = message.caption
         if text:
-            text_to_photo[text] = full_pass
+            text_to_photo.append([text, full_pass])
             print(text_to_photo)
             await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
         else:
@@ -95,7 +95,39 @@ async def time_to_delete(message: Message):
     except:
         await message.answer('Введите число')
 
-dp.register_callback_query_handler(process_button1, lambda c: c.data == 'button1')
-dp.register_callback_query_handler(process_button2, lambda c: c.data == 'button2')
+
+async def create_menu_straight_revers_queue(message: types.Message):
+    # Создаем инлайн-клавиатуру
+    inline_keyboard = types.InlineKeyboardMarkup(row_width=2)
+    # Создаем две кнопки с уникальными callback_data
+    button1 = types.InlineKeyboardButton(text="Прямой", callback_data='queue s')
+    button2 = types.InlineKeyboardButton(text="Обратный", callback_data='queue r')
+    # Добавляем кнопки в меню
+    inline_keyboard.add(button1, button2)
+
+    # Отправляем сообщение с инлайн-меню
+    await message.reply("Выберите действие:", reply_markup=inline_keyboard)
+
+
+# Обработчик события для первой кнопки
+async def straight_revers_queue_callback(callback_query: types.CallbackQuery):
+    global flag
+    global text_to_photo
+    call = callback_query.data.split()
+    if call[1] == 's':
+        if flag == 1:
+            text_to_photo = text_to_photo[::-1]
+            flag = 0
+            await callback_query.answer('Очередь перевернута!')
+            await bot.send_message(callback_query.message.chat.id, text_to_photo)
+        print('SSS')
+    if call[1] == 'r':
+        flag = 1
+
+        text_to_photo = text_to_photo[::-1]
+        await callback_query.answer('Очередь перевернута!')
+        await bot.send_message(callback_query.message.chat.id,text_to_photo)
+dp.register_callback_query_handler(straight_revers_queue_callback, lambda query: query.data.startswith('queue'))
+
 
 executor.start_polling(dp, skip_updates=True)

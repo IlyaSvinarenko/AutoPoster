@@ -12,7 +12,7 @@ login_fansly = os.environ.get('login_fansly')
 password_fansly = os.environ.get('password_fansly')
 
 
-def posting(dic: dict, hours: int):
+def posting(l: list, hours: int):
     """ Запуск браузера, открытие целевого профиля и сопутствующие клики по элементам
         dic - Словарь с данными
         hours - количество часов, для отложенного удаления постов  """
@@ -46,14 +46,14 @@ def posting(dic: dict, hours: int):
     later_button.click()
     sleep(8)
 
-    for key, val in dic.items():
+    for i in l:
         """ Цикл кликов по различным элементам, для того чтобы поочередно постить сохраненные данные
             key - Текст для поста
             value - Путь к изображению на устройстве """
 
         text_for_post = browser.find_element("xpath",
                                              "/html/body/app-root/div/div[1]/div/app-feed-route/div[1]/div/div/app-post-creation/div[1]/div[2]/div[2]/textarea")
-        text_for_post.send_keys(key)
+        text_for_post.send_keys(i[0])
         sleep(2)
         pre_upload_button = browser.find_element("xpath",
                                                  "/html/body/app-root/div/div[1]/div/app-feed-route/div[1]/div/div/app-post-creation/div[2]/div[1]/div/div[1]/i")
@@ -70,7 +70,7 @@ def posting(dic: dict, hours: int):
         sleep(1)
         file_name_edit = file_dialog.Edit
         sleep(1)
-        file_name_edit.set_text(val)
+        file_name_edit.set_text(i[1])
         sleep(1)
         send_keys("{ENTER}")
         sleep(1)
