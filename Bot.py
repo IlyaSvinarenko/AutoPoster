@@ -5,13 +5,13 @@ import os
 from pathlib import Path
 import Posting
 
-
 bot_token = os.environ.get('bot_token')
 bot = Bot(token=bot_token)
 dp = Dispatcher(bot)
 hours = 24
 count_message = 0
 text_to_photo = {}
+
 
 @dp.message_handler(commands=['help'])
 async def help(message: Message):
@@ -26,9 +26,11 @@ async def help(message: Message):
 
 
 @dp.message_handler(commands=['posting'])
-async def help(message: Message):
+async def posting_command(message: Message):
     global hours
     Posting.posting(text_to_photo, hours)
+
+
 
 @dp.message_handler(commands=['stop'])
 async def clear_data(message: Message):
@@ -48,42 +50,47 @@ async def clear_data(message: Message):
         if os.path.isfile(file_path):
             # Если это файл, удаляем его
             os.remove(file_path)
-
     print(text_to_photo)
-    await message.answer('count_message update to  (0)')
+    await message.answer('Данные изображений и текстов очищены \n Таймер удаления постов выставлен на 24 часа')
+
+
+@dp.message_handler(content_types=types.ContentTypes.ANY, is_forwarded=True)
+async def saver_msg(message: Message):
+    """ Перехватывает ПЕРЕСЛАНЫЕ сообщения и сохраняет фото и текст"""
+
+    print('//////    New forwarded message   //////')
+    try:
+        global count_message
+        global text_to_photo
+        file_id = message.photo[-1]["file_id"]
+        file_info = await bot.get_file(file_id)
+        file_path = file_info.file_path
+        file_extension = Path(file_path).suffix
+        file_name = f"{count_message}{file_extension}"
+        save_path = f"images/{file_name}"
+        count_message += 1
+        # Сохраняем файл на компьютере
+        await bot.download_file(file_path, save_path)
+        full_pass = os.path.abspath(save_path)
+        text = message.caption
+        if text:
+            text_to_photo[text] = full_pass
+            print(text_to_photo)
+            await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
+        else:
+            await message.answer("Похоже пересланное сообщение не содержит текста")
+    except:
+        await message.answer("Похоже пересланное сообщение не содержит изображения")
+
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT)
 async def time_to_delete(message: Message):
     try:
         global hours
         hours = int(message.text)
-        await message.answer(hours)
+        await message.answer(f"Таймер удаления постов выставлен на {hours}ч")
     except:
         await message.answer('Введите число')
-
-
-
-@dp.message_handler(content_types=types.ContentTypes.ANY, is_forwarded=True)
-async def saver_msg(message: Message):
-
-    """ Перехватывает все сообщения """
-
-    print('//////    New forwarded message   //////')
-    global count_message
-    global text_to_photo
-    file_id = message.photo[-1]["file_id"]
-    file_info = await bot.get_file(file_id)
-    file_path = file_info.file_path
-    file_extension = Path(file_path).suffix
-    file_name = f"{count_message}{file_extension}"
-    save_path = f"images/{file_name}"
-    count_message += 1
-    # Сохраняем файл на компьютере
-    await bot.download_file(file_path, save_path)
-    full_pass = os.path.abspath(save_path)
-    text_to_photo[message.caption] = full_pass
-    print(text_to_photo)
-    await message.answer('image saved in:\n' + file_path)
 
 
 executor.start_polling(dp, skip_updates=True)
