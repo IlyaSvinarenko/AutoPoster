@@ -4,6 +4,8 @@ from aiogram.utils import executor
 import os
 from pathlib import Path
 import Posting
+import menu_and_callback
+from menu_and_callback import create_menu, process_button1, process_button2
 
 bot_token = os.environ.get('bot_token')
 bot = Bot(token=bot_token)
@@ -28,7 +30,8 @@ async def help(message: Message):
 @dp.message_handler(commands=['posting'])
 async def posting_command(message: Message):
     global hours
-    Posting.posting(text_to_photo, hours)
+    await menu_and_callback.create_menu(message)
+    # Posting.posting(text_to_photo, hours)
 
 
 
@@ -92,5 +95,7 @@ async def time_to_delete(message: Message):
     except:
         await message.answer('Введите число')
 
+dp.register_callback_query_handler(process_button1, lambda c: c.data == 'button1')
+dp.register_callback_query_handler(process_button2, lambda c: c.data == 'button2')
 
 executor.start_polling(dp, skip_updates=True)
