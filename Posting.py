@@ -113,11 +113,11 @@ def posting(l: list, hours: int):
         confirm_button = browser.find_element("xpath",
                                               "/html/body/app-root/div/div[3]/app-post-expiry-modal/div/div[3]/div[2]")
         confirm_button.click()
-        sleep(2)
+        sleep(5)
 
         post_button = browser.find_element("xpath",
                                            "/html/body/app-root/div/div[1]/div/app-feed-route/div[1]/div/div/app-post-creation/div[2]/div[9]")
         post_button.click()
-        sleep(3)
+        sleep(4)
 
     browser.quit()

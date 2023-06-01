@@ -1,21 +1,23 @@
 from aiogram import types
+import Posting
 
 
-# Функция для создания инлайн-меню
-async def create_menu_straight_revers_queue(message: types.Message):
+async def create_pre_posting_menu(message: types.Message, queue, hours):
     # Создаем инлайн-клавиатуру
-    inline_keyboard = types.InlineKeyboardMarkup(row_width=2)
+    inline_keyboard = types.InlineKeyboardMarkup(row_width=1)
     # Создаем две кнопки с уникальными callback_data
-    button1 = types.InlineKeyboardButton(text="Кнопка 1", callback_data='button1')
-    button2 = types.InlineKeyboardButton(text="Кнопка 2", callback_data='button2')
+    button1 = types.InlineKeyboardButton(text="Развернуть последовательность", callback_data='m1 reverse')
+    button2 = types.InlineKeyboardButton(text="Начать постинг", callback_data='m1 posting')
     # Добавляем кнопки в меню
     inline_keyboard.add(button1, button2)
 
-    # Отправляем сообщение с инлайн-меню
-    await message.reply("Выберите действие:", reply_markup=inline_keyboard)
+    await message.answer(f"Последовательность постинга: {queue}\n"
+                         f"Отложенное удаление: {hours}ч", reply_markup=inline_keyboard)
 
 
-# Обработчик события для первой кнопки
-async def straight_revers_queue_callback(callback_query: types.CallbackQuery):
-    await callback_query.answer("Вы нажали на кнопку 1!")
-
+async def revers_queue_or_posting(callback_query: types.CallbackQuery, text_to_photo, hours):
+    call = callback_query.data.split()
+    if call[1] == 'reverse':
+        return True
+    elif call[1] == 'posting':
+        Posting.posting(text_to_photo, hours)
