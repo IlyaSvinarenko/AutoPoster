@@ -18,7 +18,11 @@ count_message = 0
 text_to_photo = []
 queue = ["Прямая", "Обратная"]
 flag_queue = 0
+saved_message = {}
 
+
+def sort_by_photo_name(lst):
+    return sorted(lst, key=lambda x: x[1])
 
 @dp.message_handler(commands=['help'])
 async def help(message: Message):
@@ -35,6 +39,8 @@ async def help(message: Message):
 @dp.message_handler(commands=['posting'])
 async def posting_command(message: Message, state: FSMContext):
     global hours
+    global text_to_photo
+    text_to_photo = sort_by_photo_name(text_to_photo)
     await menu_and_callback.create_pre_posting_menu(message, queue[flag_queue], hours)
 
 
@@ -60,30 +66,35 @@ async def clear_data(message: Message):
     await message.answer('Данные изображений и текстов очищены \n Таймер удаления постов выставлен на 24 часа')
 
 
+
 @dp.message_handler(content_types=types.ContentTypes.ANY, is_forwarded=True)
 async def saver_msg(message: Message):
     """ Перехватывает ПЕРЕСЛАНЫЕ сообщения и сохраняет фото и текст"""
 
     print('//////    New forwarded message   //////')
     try:
+        global saved_message
         global count_message
         global text_to_photo
         file_id = message.photo[-1]["file_id"]
         file_info = await bot.get_file(file_id)
         file_path = file_info.file_path
         file_extension = Path(file_path).suffix
-        file_name = f"{count_message}{file_extension}"
+        file_name = f"{message.message_id}{file_extension}"
         save_path = f"images/{file_name}"
-        count_message += 1
+
         # Сохраняем файл на компьютере
         await bot.download_file(file_path, save_path)
         full_pass = os.path.abspath(save_path)
         text = message.caption
         if text:
             text_to_photo.append([text, full_pass])
+
             await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
+
         else:
             await message.answer("Похоже пересланное сообщение не содержит текста")
+
     except:
         await message.answer("Похоже пересланное сообщение не содержит изображения")
 
