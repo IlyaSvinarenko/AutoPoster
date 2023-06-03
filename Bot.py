@@ -106,7 +106,7 @@ async def callback(callback_query: types.CallbackQuery):
     if is_reverse:
         flag_queue = (flag_queue + 1) % 2
         text_to_photo = text_to_photo[::-1]
-        print(flag_queue, text_to_photo)
+        print(queue[flag_queue], text_to_photo)
         await callback_query.message.delete()
         await menu_and_callback.create_pre_posting_menu(callback_query.message, queue[flag_queue], hours)
 

@@ -20,4 +20,4 @@ async def revers_queue_or_posting(callback_query: types.CallbackQuery, text_to_p
     if call[1] == 'reverse':
         return True
     elif call[1] == 'posting':
-        Posting.posting(text_to_photo, hours)
+        Posting.fansly_open(text_to_photo, hours)
