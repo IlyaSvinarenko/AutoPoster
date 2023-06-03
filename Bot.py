@@ -4,15 +4,11 @@ from aiogram.utils import executor
 import os
 from pathlib import Path
 import menu_and_callback
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 
-# import menu_and_callback
-# from menu_and_callback import create_menu_straight_revers_queue, straight_revers_queue_callback
-storage = MemoryStorage()
 bot_token = os.environ.get('bot_token')
 bot = Bot(token=bot_token)
-dp = Dispatcher(bot, storage=storage)
+dp = Dispatcher(bot)
 hours = 24
 count_message = 0
 text_to_photo = []
@@ -20,9 +16,6 @@ queue = ["Прямая", "Обратная"]
 flag_queue = 0
 saved_message = {}
 
-
-def sort_by_photo_name(lst):
-    return sorted(lst, key=lambda x: x[1])
 
 @dp.message_handler(commands=['help'])
 async def help(message: Message):
@@ -40,7 +33,7 @@ async def help(message: Message):
 async def posting_command(message: Message, state: FSMContext):
     global hours
     global text_to_photo
-    text_to_photo = sort_by_photo_name(text_to_photo)
+    text_to_photo = sorted(text_to_photo, key=lambda x: x[1])
     await menu_and_callback.create_pre_posting_menu(message, queue[flag_queue], hours)
 
 
@@ -50,17 +43,13 @@ async def clear_data(message: Message):
     global text_to_photo
     text_to_photo = []
     count_message = 0
-    # Получаем список файлов и папок в указанной папке
     folder_path = ".\images"
     files = os.listdir(folder_path)
-    # Проходим по каждому файлу/папке
     for file_name in files:
         # Формируем полный путь к файлу/папке
         file_path = os.path.join(folder_path, file_name)
-
         # Проверяем, является ли объект файлом
         if os.path.isfile(file_path):
-            # Если это файл, удаляем его
             os.remove(file_path)
     print(text_to_photo)
     await message.answer('Данные изображений и текстов очищены \n Таймер удаления постов выставлен на 24 часа')
