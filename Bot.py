@@ -11,7 +11,7 @@ bot = Bot(token=bot_token)
 dp = Dispatcher(bot)
 hours = 24
 count_message = 0
-text_to_photo = []
+text_to_media = []
 queue = ["Прямая", "Обратная"]
 flag_queue = 0
 saved_message = {}
@@ -32,18 +32,18 @@ async def help(message: Message):
 @dp.message_handler(commands=['posting'])
 async def posting_command(message: Message, state: FSMContext):
     global hours
-    global text_to_photo
-    text_to_photo = sorted(text_to_photo, key=lambda x: x[1])
+    global text_to_media
+    text_to_media = sorted(text_to_media, key=lambda x: x[1])
     await menu_and_callback.create_pre_posting_menu(message, queue[flag_queue], hours)
 
 
 @dp.message_handler(commands=['stop'])
 async def clear_data(message: Message):
     global count_message
-    global text_to_photo
-    text_to_photo = []
+    global text_to_media
+    text_to_media = []
     count_message = 0
-    folder_path = ".\images"
+    folder_path = ".\media"
     files = os.listdir(folder_path)
     for file_name in files:
         # Формируем полный путь к файлу/папке
@@ -51,42 +51,67 @@ async def clear_data(message: Message):
         # Проверяем, является ли объект файлом
         if os.path.isfile(file_path):
             os.remove(file_path)
-    print(text_to_photo)
+    print(text_to_media)
     await message.answer('Данные изображений и текстов очищены \n Таймер удаления постов выставлен на 24 часа')
 
 
 
 @dp.message_handler(content_types=types.ContentTypes.ANY, is_forwarded=True)
 async def saver_msg(message: Message):
-    """ Перехватывает ПЕРЕСЛАНЫЕ сообщения и сохраняет фото и текст"""
+    """ Перехватывает ПЕРЕСЛАНЫЕ сообщения и сохраняет медиа и текст"""
 
     print('//////    New forwarded message   //////')
-    try:
-        global saved_message
-        global count_message
-        global text_to_photo
-        file_id = message.photo[-1]["file_id"]
-        file_info = await bot.get_file(file_id)
-        file_path = file_info.file_path
-        file_extension = Path(file_path).suffix
-        file_name = f"{message.message_id}{file_extension}"
-        save_path = f"images/{file_name}"
+    # try:
+    global saved_message
+    global count_message
+    global text_to_media
+    #file = message.video[-1]["file_id"]
+    content_type = message.content_type
+    #print(forward_from)
 
-        # Сохраняем файл на компьютере
-        await bot.download_file(file_path, save_path)
-        full_pass = os.path.abspath(save_path)
-        text = message.caption
-        if text:
-            text_to_photo.append([text, full_pass])
+    a = message.photo
+    b = message.video
+    c = message.animation
+    d = (a,b,c)
+    for i in d:
+        if i:
+            print(id)
 
-            await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
+            if i == a:
+                file_id = i[-1]["file_id"]
+            #elif i == b:
 
-        else:
-            await message.answer("Похоже пересланное сообщение не содержит текста")
+            else:
+                file_id = i.file_id
+    print(id)
+    file_path = await bot.get_file(file_id)
 
-    except:
-        await message.answer("Похоже пересланное сообщение не содержит изображения")
+    le_name = file_path.file_path.split('/')[-1]
 
+    file_info = await bot.get_file(file_id)
+    file_path = file_info.file_path
+    file_extension = Path(file_path).suffix
+
+    if not file_extension:
+        file_extension = '.mp4'
+    file_name = f"{message.message_id}{file_extension}"
+    save_path = f"media/{file_name}"
+
+    # Сохраняем файл на компьютере
+    await bot.download_file(file_path, save_path)
+    full_pass = os.path.abspath(save_path)
+    text = message.caption
+    if text:
+        text_to_media.append([text, full_pass])
+
+    #         await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
+    #
+    #     else:
+    #         await message.answer("Похоже пересланное сообщение не содержит текста")
+    #
+    # except:
+    #     await message.answer("Похоже пересланное сообщение не содержит изображения")
+    #
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT)
 async def time_to_delete(message: Message):
@@ -100,13 +125,13 @@ async def time_to_delete(message: Message):
 
 @dp.callback_query_handler(lambda query: query.data.startswith('m1'))
 async def callback(callback_query: types.CallbackQuery):
-    global text_to_photo
+    global text_to_media
     global flag_queue
-    is_reverse = await menu_and_callback.revers_queue_or_posting(callback_query, text_to_photo, hours)
+    is_reverse = await menu_and_callback.revers_queue_or_posting(callback_query, text_to_media, hours)
     if is_reverse:
         flag_queue = (flag_queue + 1) % 2
-        text_to_photo = text_to_photo[::-1]
-        print(queue[flag_queue], text_to_photo)
+        text_to_media = text_to_media[::-1]
+        print(queue[flag_queue], text_to_media)
         await callback_query.message.delete()
         await menu_and_callback.create_pre_posting_menu(callback_query.message, queue[flag_queue], hours)
 
