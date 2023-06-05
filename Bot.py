@@ -61,57 +61,39 @@ async def saver_msg(message: Message):
     """ Перехватывает ПЕРЕСЛАНЫЕ сообщения и сохраняет медиа и текст"""
 
     print('//////    New forwarded message   //////')
-    # try:
-    global saved_message
-    global count_message
-    global text_to_media
-    #file = message.video[-1]["file_id"]
-    content_type = message.content_type
-    #print(forward_from)
+    try:
+        global saved_message
+        global count_message
+        global text_to_media
+        media_types = (message.photo, message.video, message.animation)
+        for type in media_types:
+            if type:
+                if type is message.photo:
+                    file_id = type[-1]["file_id"]
+                else:
+                    file_id = type.file_id
+        file_info = await bot.get_file(file_id)
+        file_path = file_info.file_path
+        file_extension = Path(file_path).suffix
+        if not file_extension:
+            file_extension = '.mp4'
+        file_name = f"{message.message_id}{file_extension}"
+        save_path = f"media/{file_name}"
+        # Сохраняем файл на компьютере
+        await bot.download_file(file_path, save_path)
+        full_pass = os.path.abspath(save_path)
+        text = message.caption
+        if text:
+            print((f'Изображение ({file_name}) сохранено в:\n' + full_pass))
+            text_to_media.append([text, full_pass])
+            await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
 
-    a = message.photo
-    b = message.video
-    c = message.animation
-    d = (a,b,c)
-    for i in d:
-        if i:
-            print(id)
+        else:
+            await message.answer("Похоже пересланное сообщение не содержит текста")
 
-            if i == a:
-                file_id = i[-1]["file_id"]
-            #elif i == b:
+    except:
+        await message.answer("Похоже пересланное сообщение не содержит медиа")
 
-            else:
-                file_id = i.file_id
-    print(id)
-    file_path = await bot.get_file(file_id)
-
-    le_name = file_path.file_path.split('/')[-1]
-
-    file_info = await bot.get_file(file_id)
-    file_path = file_info.file_path
-    file_extension = Path(file_path).suffix
-
-    if not file_extension:
-        file_extension = '.mp4'
-    file_name = f"{message.message_id}{file_extension}"
-    save_path = f"media/{file_name}"
-
-    # Сохраняем файл на компьютере
-    await bot.download_file(file_path, save_path)
-    full_pass = os.path.abspath(save_path)
-    text = message.caption
-    if text:
-        text_to_media.append([text, full_pass])
-
-    #         await message.answer(f'Изображение ({file_name}) сохранено в:\n' + full_pass)
-    #
-    #     else:
-    #         await message.answer("Похоже пересланное сообщение не содержит текста")
-    #
-    # except:
-    #     await message.answer("Похоже пересланное сообщение не содержит изображения")
-    #
 
 @dp.message_handler(content_types=types.ContentTypes.TEXT)
 async def time_to_delete(message: Message):
