@@ -1,5 +1,6 @@
 from aiogram import types
 import Posting
+import logins_and_passwords
 
 
 async def create_pre_posting_menu(message: types.Message, queue, hours):
@@ -20,4 +21,7 @@ async def revers_queue_or_posting(callback_query: types.CallbackQuery, text_to_p
     if call[1] == 'reverse':
         return True
     elif call[1] == 'posting':
-        Posting.fansly_open(text_to_photo, hours)
+        for account_data in logins_and_passwords.get_accounts_data():
+            login = account_data[0]
+            password = account_data[1]
+            Posting.fansly_open(text_to_photo, hours, login, password)

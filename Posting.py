@@ -13,7 +13,7 @@ password_fansly = os.environ.get('password_fansly')
 count_of_complete_posts = 0
 
 
-def fansly_open(l: list, hours: int):
+def fansly_open(l: list, hours: int, login: str, password: str):
     """ Запуск браузера, открытие целевого профиля и сопутствующие клики по элементам
         dic - Словарь с данными
         hours - количество часов, для отложенного удаления постов  """
@@ -33,10 +33,10 @@ def fansly_open(l: list, hours: int):
 
         login_input = browser.find_element("xpath",
                                            "/html/body/app-root/div/div[1]/div/app-landing-page/div/div[1]/div[2]/div[1]/div[2]/div[1]/div/input")
-        login_input.send_keys(login_fansly)
+        login_input.send_keys(login)
         pssword_input = browser.find_element("xpath",
                                              "/html/body/app-root/div/div[1]/div/app-landing-page/div/div[1]/div[2]/div[1]/div[2]/div[2]/div/input")
-        pssword_input.send_keys(password_fansly)
+        pssword_input.send_keys(password)
         sleep(2)
 
         login_button = browser.find_element(By.CLASS_NAME, "btn.outline-blue.large.margin-top-1")
