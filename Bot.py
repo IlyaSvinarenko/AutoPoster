@@ -109,7 +109,7 @@ async def time_to_delete(message: Message):
 async def callback(callback_query: types.CallbackQuery):
     global text_to_media
     global flag_queue
-    is_reverse = await menu_and_callback.revers_queue_or_posting(callback_query, text_to_media, hours)
+    is_reverse = await menu_and_callback.callback_from_pre_posting_menu(callback_query, text_to_media, hours)
     if is_reverse:
         flag_queue = (flag_queue + 1) % 2
         text_to_media = text_to_media[::-1]

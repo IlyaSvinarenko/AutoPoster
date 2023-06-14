@@ -16,7 +16,7 @@ async def create_pre_posting_menu(message: types.Message, queue, hours):
                          f"Отложенное удаление: {hours}ч", reply_markup=inline_keyboard)
 
 
-async def revers_queue_or_posting(callback_query: types.CallbackQuery, text_to_photo, hours):
+async def callback_from_pre_posting_menu(callback_query: types.CallbackQuery, text_to_photo, hours):
     call = callback_query.data.split()
     if call[1] == 'reverse':
         return True
